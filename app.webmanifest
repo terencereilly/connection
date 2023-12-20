@@ -1,0 +1,12 @@
+{
+  "name": "Memory Fade",
+  "screenshots": [
+    {
+      "src": "thumbnail.png",
+      "sizes": "1454x916",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Thumbnail Image"
+    }
+  ]
+}

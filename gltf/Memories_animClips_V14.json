@@ -1,0 +1,34 @@
+{
+	"version": 1,
+	"id":"Memories_animClips_V14",
+	"name":"multiCh",
+	"animations": {
+		"spare_Clip": {
+			"version": 1,
+			"id": "spare_Clip",
+			"name": "spare clip",
+			"kind": "Puppeteer",
+			"mood": null,
+			"postPlaybackMood": null,
+			"duration": 1.75
+		},
+		"fade_Clip": {
+			"version": 1,
+			"id": "fade_Clip",
+			"name": "fade clip",
+			"kind": "Puppeteer",
+			"mood": null,
+			"postPlaybackMood": null,
+			"duration": 10.04166667
+		},
+		"run_Clip": {
+			"version": 1,
+			"id": "run_Clip",
+			"name": "run clip",
+			"kind": "Puppeteer",
+			"mood": null,
+			"postPlaybackMood": null,
+			"duration": 1.666666667
+		}
+	}
+}
