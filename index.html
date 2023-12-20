@@ -45,10 +45,28 @@
 		import * as THREE from 'three'
 		import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 		import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+		import { Olta } from './olta.module.js'
 
 		var scene, controls, renderer, camera, stats
 		var model, skeleton, mixer, clock
 		var actions, settings
+
+		const olta = Olta()
+
+		const updateHandler = () => {
+			if (!actions) {
+				return
+			}
+
+			const docs = olta.getAll("action")?.map((action) => parseBigInt(action.value))
+			actions.forEach(action => {
+				action.stop()
+			})
+
+			actions[docs[0]].play()
+		}
+
+		olta.onUpdate(updateHandler)
 
 		init()
 
@@ -138,7 +156,9 @@
 				scene.add(skeleton)
 
 				mixer = new THREE.AnimationMixer(model)
-				const actions = gltf.animations.map((animation) => mixer.clipAction(animation))
+				actions = gltf.animations.map((animation) => mixer.clipAction(animation))
+
+				updateHandler()
 				animate()
 			})
 
@@ -189,8 +209,11 @@
 		function onWindowResize() {
 			camera.aspect = window.innerWidth / window.innerHeight
 			camera.updateProjectionMatrix()
-			renderer.setSize(window.innerWidth, window.innerHeight)
-			composer.setSize(window.innerWidth, window.innerHeight) // new
+			renderer.setSize(window.innerWidth, window.innerHeight)// new
+		}
+
+		function parseBigInt(value) {
+			return Number(value.slice(0, -1))
 		}
 
 	</script>
