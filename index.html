@@ -51,6 +51,8 @@
 		var model, skeleton, mixer, clock
 		var actions, settings
 
+		let currentClip = 0
+
 		const olta = Olta()
 
 		const updateHandler = () => {
@@ -63,10 +65,21 @@
 				action.stop()
 			})
 
+			currentClip = Number(docs[0])
 			actions[docs[0]].play()
 		}
 
 		olta.onUpdate(updateHandler)
+
+		window.addEventListener('dblclick', () => {
+			const max = olta.getAll("action")?.length + 1
+			const value = `${currentClip === max ? 0 : currentClip + 1}n`
+
+			olta.update("action", {
+				id: "0",
+				value
+			})
+		})
 
 		init()
 
