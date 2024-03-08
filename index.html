@@ -61,6 +61,9 @@
 			}
 
 			const docs = olta.getAll("action")?.map((action) => parseBigInt(action.value))
+			if(!docs){
+				return
+			}
 			actions.forEach(action => {
 				action.stop()
 			})
@@ -71,9 +74,30 @@
 
 		olta.onUpdate(updateHandler)
 
+
+
+		// Added Right Click Save Interaction
+		window.addEventListener('contextmenu', (event) => { 
+			
+			console. log("🖱 right click detected!") 
+
+			const max = olta.getAll("action")?.length + 1
+			const value = `${currentClip === max ? 0 : currentClip + 1}n`
+
+				console.log("VALUE",value)
+
+			olta.update("action", {
+				id: "0",
+				value
+			})
+		})
+
+
 		window.addEventListener('dblclick', () => {
 			const max = olta.getAll("action")?.length + 1
 			const value = `${currentClip === max ? 0 : currentClip + 1}n`
+
+				console.log("VALUE",value)
 
 			olta.update("action", {
 				id: "0",
