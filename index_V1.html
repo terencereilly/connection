@@ -70,20 +70,6 @@
             
         });
 
-
-          // Touch Event for mobile
-          window.addEventListener('touchstart', () => {
-            console.log("👆 touch detected!");
-            const max = olta.getAll("action")?.length + 1;
-            const value = `${(currentClip + 1) % max}n`;
-            olta.update("action", { id: "0", value });
-            
-        });
-
-
-
-
-
         init();
 
         function init() {
