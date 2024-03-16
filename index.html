@@ -129,11 +129,11 @@
             var hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 1.5);
             hemiLight.color.setHSL(0.6, 1, 0.1);
             hemiLight.groundColor.setHSL(0.1, .1, 0.6);
-            hemiLight.position.set(10, 70, 10);
+            hemiLight.position.set(10, 30, 10);
             hemiLight.rotation.set(0, -30, 0);
             scene.add(hemiLight);
 
-            var dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
+            var dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
             dirLight.color.setHSL(0.1, .5, 1);
             dirLight.position.set(-5, 6, .01);
             dirLight.position.multiplyScalar(12);
@@ -141,8 +141,8 @@
             dirLight.castShadow = true;
             dirLight.shadow.mapSize.width = 512;
             dirLight.shadow.mapSize.height = 512;
-            dirLight.intensity = 0.4;
-            var d = 10;
+            dirLight.intensity = 1;
+            var d = 20;
             dirLight.shadow.camera.left = -d;
             dirLight.shadow.camera.right = d;
             dirLight.shadow.camera.top = d;
@@ -197,7 +197,10 @@ loader.load('./gltf/Angled_Planes_V37.gltf', function (gltf) {
             var material = object.material;
 
 			material.DoubleSide	= true
-		
+			material.specular = 0.5;
+
+			material.castShadow = true; // Enable shadow casting for the object
+			material.receiveShadow = true; // Enable s
 
             // Apply custom shader
             var shaderMaterial = new THREE.ShaderMaterial({
@@ -207,8 +210,7 @@ loader.load('./gltf/Angled_Planes_V37.gltf', function (gltf) {
                 side: THREE.DoubleSide // Make the material double-sided
             });
           //  object.material = shaderMaterial;
-			object.castShadow = true; // Enable shadow casting for the object
-                        object.receiveShadow = true; // Enable s
+			
         }
     });
 
