@@ -1,0 +1,43 @@
+{
+	"version": 1,
+	"id":"Angled_Planes_V37",
+	"name":"character1",
+	"animations": {
+		"clip1": {
+			"version": 1,
+			"id": "clip1",
+			"name": "clip1",
+			"kind": "Puppeteer",
+			"mood": null,
+			"postPlaybackMood": null,
+			"duration": 8.333333333
+		},
+		"clip2": {
+			"version": 1,
+			"id": "clip2",
+			"name": "clip2",
+			"kind": "Puppeteer",
+			"mood": null,
+			"postPlaybackMood": null,
+			"duration": 8.125
+		},
+		"clip3": {
+			"version": 1,
+			"id": "clip3",
+			"name": "clip3",
+			"kind": "Puppeteer",
+			"mood": null,
+			"postPlaybackMood": null,
+			"duration": 8.666666667
+		},
+		"clip4": {
+			"version": 1,
+			"id": "clip4",
+			"name": "clip4",
+			"kind": "Puppeteer",
+			"mood": null,
+			"postPlaybackMood": null,
+			"duration": 8.25
+		}
+	}
+}
