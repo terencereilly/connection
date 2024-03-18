@@ -174,8 +174,8 @@
             camera.position.set(0, 4, -8);
             clock = new THREE.Clock();
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0xa0a0a0);
-            scene.fog = new THREE.Fog(0xa0a0a0, 0.1, 11);
+            scene.background = new THREE.Color('white');
+            scene.fog = new THREE.Fog(0xffffff, 0.1, 11);
 
             // Lights
             var hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 1.5);
@@ -202,7 +202,9 @@
             dirLight.shadow.camera.far = 150;
             dirLight.shadow.bias = -0.00001;
 
-            var mesh = new THREE.Mesh(new THREE.CircleGeometry(40, 40), new THREE.MeshPhongMaterial({}));
+            var mesh = new THREE.Mesh(new THREE.CircleGeometry(40, 40), new THREE.MeshPhongMaterial({
+                color: 0xffffff,
+            }));
             mesh.rotation.x = - Math.PI / 2;
             mesh.position.y = -3.05;
             mesh.receiveShadow = true;
@@ -215,7 +217,7 @@
                     if (object.isMesh) {
                         var material = object.material;
 
-                        material.DoubleSide = true
+                        material.DoubleSide = true;
                         material.specular = 0.5;
 
                         material.castShadow = true; // Enable shadow casting for the object
