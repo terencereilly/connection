@@ -112,39 +112,18 @@
             if (!actions) return;
             const docs = olta.getAll("action")?.map((action) => parseInt(action.value));
 
-
- 
-
-
             if (!docs) return;
-
-            // Show loading overlay
 
             actions.forEach(action => {
                 action.stop()
-
             })
 
-
             currentClip = Number(docs[0])
-
- 
-
             actions[docs[0]].play()
 
-            
-
-            // Hide loading overlay after a delay (you can adjust the delay as needed)
             setTimeout(() => {
                 loadingOverlay.style.display = 'none';
-            }, 1000); // Adjust the delay (in milliseconds) based on your animation loading time
-
-            //}
-
-
-            // const nextClip = docs[0];
-            // crossfade(currentClip, nextClip);
-            // currentClip = nextClip;
+            }, 1000); 
         }
 
         olta.onUpdate(updateHandler);
@@ -154,12 +133,10 @@
         window.addEventListener('contextmenu', (event) => {
 
             console.log("🖱 right click detected!")
-
             loadingOverlay.style.display = 'block';
 
             const max = olta.getAll("action")?.length + 1
             const value = `${currentClip === max ? 0 : currentClip + 1}n`
-
             console.log("VALUE", value)
 
             olta.update("action", {
@@ -172,25 +149,20 @@
 
         // Touch Event for mobile
         window.addEventListener('touchstart', (event) => {
-            console.log("👆 touch detected!");
 
+            console.log("👆 touch detected!");
             loadingOverlay.style.display = 'block';
 
             const max = olta.getAll("action")?.length + 1;
-          //  const value = `${(currentClip + 1) % max}n`;
             const value = `${currentClip === max ? 0 : currentClip + 1}n`
-
             console.log("VALUE", value)
 
-            olta.update("action", 
-            { 
-                id: "0", 
-                value 
-            })
-
+            olta.update("action",
+                {
+                    id: "0",
+                    value
+                })
         })
-
-
 
 
 
@@ -281,16 +253,6 @@
             controls.minDistance = 8;
             controls.maxDistance = 12;
         }
-
-        // function crossfade(currentClipIndex, nextClipIndex) {
-        //     const currentAction = actions[currentClipIndex];
-        //     const nextAction = actions[nextClipIndex];
-        //     currentAction.crossFadeTo(nextAction, 0.5, true);
-        //     currentAction.enabled = true;
-        //     nextAction.enabled = true;
-        //     nextAction.time = 0;
-        //     nextAction.play();
-        // }
 
         function animate() {
             requestAnimationFrame(animate);
