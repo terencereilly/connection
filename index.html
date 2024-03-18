@@ -110,20 +110,20 @@
 
         const updateHandler = () => {
             if (!actions) return;
-
-            // Show loading overlay
-            loadingOverlay.style.display = 'block';
-
             const docs = olta.getAll("action")?.map((action) => parseInt(action.value));
 
             if (!docs) return;
-
             actions.forEach(action => {
                 action.stop()
             })
 
+
+
             currentClip = Number(docs[0])
             actions[docs[0]].play()
+
+             // Show loading overlay
+             loadingOverlay.style.display = 'block';
 
             // Hide loading overlay after a delay (you can adjust the delay as needed)
             setTimeout(() => {
