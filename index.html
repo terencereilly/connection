@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <title>Memories</title>
     <meta charset="utf-8">
@@ -15,63 +16,62 @@
             overflow: hidden;
             display: block;
         }
+
         #container {
             position: fixed;
             width: 100%;
             height: 100%;
         }
 
-
-
-
-
-
-
         #loadingOverlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: none; /* Initially hidden */
-    z-index: 1000; /* Make sure it's above other content */
-}
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            /* Initially hidden */
+            z-index: 1000;
+            /* Make sure it's above other content */
+        }
 
-#loadingSpinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid #fff;
-    border-radius: 50%;
-    border-top-color: transparent;
-    animation: spin 1s linear infinite;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    margin-top: -20px;
-    margin-left: -20px;
-}
+        #loadingSpinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #fff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            margin-top: -20px;
+            margin-left: -20px;
+        }
 
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
 
-#loadingText {
-    color: #fff;
-    font-size: 18px;
-    font-family: Monospace ;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-}
+            100% {
+                transform: rotate(360deg);
+            }
+        }
 
-
-
-
+        #loadingText {
+            color: #fff;
+            font-size: 18px;
+            font-family: Monospace;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
     </style>
 </head>
+
 <body>
     <div id="container"></div>
 
@@ -81,7 +81,7 @@
         <div id="loadingSpinner"></div>
         <div id="loadingText">Updating Animation...</div>
     </div>
-    
+
 
 
 
@@ -104,45 +104,35 @@
         var currentClip = 0;
         const olta = Olta();
 
-    
-    
-    
-
-
-
 
         const loadingOverlay = document.getElementById('loadingOverlay');
 
-    
+
         const updateHandler = () => {
             if (!actions) return;
 
-              // Show loading overlay
-    loadingOverlay.style.display = 'block';
+            // Show loading overlay
+            loadingOverlay.style.display = 'block';
 
             const docs = olta.getAll("action")?.map((action) => parseInt(action.value));
 
             if (!docs) return;
 
+            actions.forEach(action => {
+                action.stop()
+            })
 
-			actions.forEach(action => {
-				action.stop()
-			})
+            currentClip = Number(docs[0])
+            actions[docs[0]].play()
 
-			currentClip = Number(docs[0])
-			actions[docs[0]].play()
+            // Hide loading overlay after a delay (you can adjust the delay as needed)
+            setTimeout(() => {
+                loadingOverlay.style.display = 'none';
+            }, 1000); // Adjust the delay (in milliseconds) based on your animation loading time
 
-
-// Hide loading overlay after a delay (you can adjust the delay as needed)
-setTimeout(() => {
-        loadingOverlay.style.display = 'none';
-    }, 1000); // Adjust the delay (in milliseconds) based on your animation loading time
+            //}
 
 
-
-		//}
-
-            
             // const nextClip = docs[0];
             // crossfade(currentClip, nextClip);
             // currentClip = nextClip;
@@ -150,52 +140,53 @@ setTimeout(() => {
 
         olta.onUpdate(updateHandler);
 
-			
-				// Added Right Click Save Interaction
-				window.addEventListener('contextmenu', (event) => { 
-			
-			console. log("🖱 right click detected!") 
 
-			const max = olta.getAll("action")?.length + 1
-			const value = `${currentClip === max ? 0 : currentClip + 1}n`
+        // Added Right Click Save Interaction
+        window.addEventListener('contextmenu', (event) => {
 
-				console.log("VALUE",value)
+            console.log("🖱 right click detected!")
 
-			olta.update("action", {
-				id: "0",
-				value
-			})
-		})
+            const max = olta.getAll("action")?.length + 1
+            const value = `${currentClip === max ? 0 : currentClip + 1}n`
 
+            console.log("VALUE", value)
 
+            olta.update("action", {
+                id: "0",
+                value
+            })
+        })
 
 
-     //   R Click Event
-        window.addEventListener('contextmenu', (event) => { 
+
+        // Touch Event for mobile
+        window.addEventListener('touchstart', (event) => {
+            console.log("👆 touch detected!");
+
             const max = olta.getAll("action")?.length + 1;
-            const value = `${(currentClip + 1) % max}n`;
-            olta.update("action", { id: "0", value });
-        });
+          //  const value = `${(currentClip + 1) % max}n`;
+            const value = `${currentClip === max ? 0 : currentClip + 1}n`
 
-         // Double Click Event
-        // window.addEventListener('dblclick', () => {
+            console.log("VALUE", value)
+
+            olta.update("action", 
+            { 
+                id: "0", 
+                value 
+            })
+
+        })
+
+
+
+        // //   R Click Event
+        // window.addEventListener('contextmenu', (event) => {
         //     const max = olta.getAll("action")?.length + 1;
         //     const value = `${(currentClip + 1) % max}n`;
+            
+
         //     olta.update("action", { id: "0", value });
-            
         // });
-
-
-          // Touch Event for mobile
-          window.addEventListener('touchstart', (event) => {
-            console.log("👆 touch detected!");
-            const max = olta.getAll("action")?.length + 1;
-            const value = `${(currentClip + 1) % max}n`;
-            olta.update("action", { id: "0", value });
-            
-        });
-
-
 
 
 
@@ -208,7 +199,7 @@ setTimeout(() => {
             clock = new THREE.Clock();
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0xa0a0a0);
-            scene.fog = new THREE.Fog(0xa0a0a0, 0.1,11);
+            scene.fog = new THREE.Fog(0xa0a0a0, 0.1, 11);
 
             // Lights
             var hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 1.5);
@@ -235,39 +226,39 @@ setTimeout(() => {
             dirLight.shadow.camera.far = 150;
             dirLight.shadow.bias = -0.00001;
 
-            var mesh = new THREE.Mesh(new THREE.CircleGeometry(40, 40), new THREE.MeshPhongMaterial({ }));
+            var mesh = new THREE.Mesh(new THREE.CircleGeometry(40, 40), new THREE.MeshPhongMaterial({}));
             mesh.rotation.x = - Math.PI / 2;
             mesh.position.y = -3.05;
             mesh.receiveShadow = true;
             scene.add(mesh);
 
-var loader = new GLTFLoader();
-loader.load('./gltf/Angled_Planes_V37.gltf', function (gltf) {
-    var model = gltf.scene;
-    model.traverse(function (object) {
-        if (object.isMesh) {
-            var material = object.material;
+            var loader = new GLTFLoader();
+            loader.load('./gltf/Angled_Planes_V37.gltf', function (gltf) {
+                var model = gltf.scene;
+                model.traverse(function (object) {
+                    if (object.isMesh) {
+                        var material = object.material;
 
-			material.DoubleSide	= true
-			material.specular = 0.5;
+                        material.DoubleSide = true
+                        material.specular = 0.5;
 
-			material.castShadow = true; // Enable shadow casting for the object
-			material.receiveShadow = true; // Enable s
-       
-        }
-    });
+                        material.castShadow = true; // Enable shadow casting for the object
+                        material.receiveShadow = true; // Enable s
 
-    model.position.set(0, -2, 0);
-    model.rotation.set(0, 2.5, 0);
-    model.scale.set(0.3, 0.3, 0.3);
-    scene.add(model);
+                    }
+                });
 
-    mixer = new THREE.AnimationMixer(model);
-    actions = gltf.animations.map((animation) => mixer.clipAction(animation));
+                model.position.set(0, -2, 0);
+                model.rotation.set(0, 2.5, 0);
+                model.scale.set(0.3, 0.3, 0.3);
+                scene.add(model);
 
-    updateHandler();
-    animate();
-});
+                mixer = new THREE.AnimationMixer(model);
+                actions = gltf.animations.map((animation) => mixer.clipAction(animation));
+
+                updateHandler();
+                animate();
+            });
 
             // Renderer
             renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -311,4 +302,5 @@ loader.load('./gltf/Angled_Planes_V37.gltf', function (gltf) {
         }
     </script>
 </body>
+
 </html>
