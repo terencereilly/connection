@@ -75,15 +75,10 @@
 <body>
     <div id="container"></div>
 
-
-
     <div id="loadingOverlay">
         <div id="loadingSpinner"></div>
         <div id="loadingText">Updating Animation...</div>
     </div>
-
-
-
 
     <script type="importmap">
         {
@@ -104,27 +99,21 @@
         var currentClip = 0;
         const olta = Olta();
 
-
         const loadingOverlay = document.getElementById('loadingOverlay');
-
-
-
-
-
-        
 
         const updateHandler = () => {
             if (!actions) return;
-            const docs = olta.getAll("action")?.map((action) => parseInt(action.value));
 
-            if (!docs) return;
+            const values = olta.getAll("action")?.map(action => action.value)
+            console.log("values", values )
 
+            if (!values) return;
             actions.forEach(action => {
                 action.stop()
             })
 
-            currentClip = Number(docs[0])
-            actions[docs[0]].play()
+            currentClip = Number(values[0])
+            actions[values[0]].play()
 
             setTimeout(() => {
                 loadingOverlay.style.display = 'none';
@@ -134,10 +123,6 @@
         olta.onUpdate(updateHandler);
 
 
-
-
-
-
         // Added Right Click Save Interaction
         window.addEventListener('contextmenu', (event) => {
 
@@ -145,7 +130,7 @@
             loadingOverlay.style.display = 'block';
 
             const max = olta.getAll("action")?.length + 1
-            const value = `${currentClip === max ? 0 : currentClip + 1}n`
+            const value = `${currentClip === max ? 0 : currentClip + 1}`
             console.log("VALUE", value)
 
             olta.update("action", {
@@ -155,7 +140,6 @@
         })
 
 
-
         // Touch Event for mobile
         window.addEventListener('touchstart', (event) => {
 
@@ -163,7 +147,7 @@
             loadingOverlay.style.display = 'block';
 
             const max = olta.getAll("action")?.length + 1;
-            const value = `${currentClip === max ? 0 : currentClip + 1}n`
+            const value = `${currentClip === max ? 0 : currentClip + 1}`
             console.log("VALUE", value)
 
             olta.update("action",
