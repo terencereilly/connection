@@ -108,6 +108,11 @@
         const loadingOverlay = document.getElementById('loadingOverlay');
 
 
+
+
+
+        
+
         const updateHandler = () => {
             if (!actions) return;
             const docs = olta.getAll("action")?.map((action) => parseInt(action.value));
@@ -127,6 +132,10 @@
         }
 
         olta.onUpdate(updateHandler);
+
+
+
+
 
 
         // Added Right Click Save Interaction
