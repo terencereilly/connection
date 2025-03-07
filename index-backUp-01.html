@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Memories</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <style>
+        html,
+        body {
+            background: #111;
+            color: #fff;
+            padding: 0;
+            margin: 0px;
+            font-weight: bold;
+            overflow: hidden;
+            display: block;
+        }
+
+        #container {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+        }
+
+        #loadingOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            /* Initially hidden */
+            z-index: 1000;
+            /* Make sure it's above other content */
+        }
+
+        #loadingSpinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #fff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            margin-top: -20px;
+            margin-left: -20px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        #loadingText {
+            color: #fff;
+            font-size: 18px;
+            font-family: Monospace;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        #animationButton {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: none;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            display: none;
+            /* Hidden by default, shown only on mobile */
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #animationButton svg {
+            width: 30px;
+            height: 30px;
+            fill: #333;
+        }
+
+        @media (max-width: 768px) {
+            #animationButton {
+                display: flex;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container"></div>
+
+    <div id="loadingOverlay">
+        <div id="loadingSpinner"></div>
+        <div id="loadingText">Updating Animation...</div>
+    </div>
+
+    <button id="animationButton" aria-label="Change Animation">
+        <svg viewBox="0 0 24 24">
+            <path
+                d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" />
+        </svg>
+    </button>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "./build/three.module.js",
+                "three/addons/": "./jsm/"
+            }
+        }
+    </script>
+    <script type="module">
+        import * as THREE from './build/three.module.js';
+        import { GLTFLoader } from './jsm/loaders/GLTFLoader.js';
+        import { OrbitControls } from './jsm/controls/OrbitControls.js';
+        import { Olta } from './olta.module.js';
+
+        var scene, controls, renderer, camera;
+        var model, mixer, clock, actions;
+        var currentClip = 0;
+        const olta = Olta();
+        const raycaster = new THREE.Raycaster();
+        const touchPoint = new THREE.Vector2();
+        let targetMesh = null;
+        let originalMaterial = null; // Store original material
+        const newColors = [
+            new THREE.Color(0xff0000), // red
+            new THREE.Color(0x00ff00), // green
+            new THREE.Color(0x0000ff), // blue
+            new THREE.Color(0xffff00), // yellow
+        ];
+        let currentColorIndex = 0;
+
+        const loadingOverlay = document.getElementById('loadingOverlay');
+
+        const updateHandler = () => {
+            if (!actions) return;
+
+            const values = olta.getAll("action")?.map(action => action.value)
+            console.log("values", values)
+
+            if (!values) return;
+            actions.forEach(action => {
+                action.stop()
+            })
+
+            currentClip = Number(values[0])
+            actions[values[0]].play()
+
+            setTimeout(() => {
+                loadingOverlay.style.display = 'none';
+            }, 1000);
+        }
+
+        olta.onUpdate(updateHandler);
+
+
+        // Added Right Click Save Interaction
+        window.addEventListener('contextmenu', (event) => {
+
+            console.log("🖱 right click detected!")
+            loadingOverlay.style.display = 'block';
+
+            // 'getAll' is a method on the 'olta' object, passing it an argument 'action'
+            // retriving all elements associated with the key action.
+            // The '?.' allows you to access properties of an object deeply nested 
+            // within a structure without worrying if any intermediate property is null or undefined. 
+            // Here it's accessing the length property of the array returned by olta.getAll("action")
+            // The '+ 1' adds 1 to the length of the array obtained from olta.getAll("action")
+
+            // ${}: This is a template literal, indicated by the backticks (). 
+            // It allows you to embed expressions inside a string by wrapping them in ${}`. 
+            // In this case, it's used to convert the result of the ternary operator into a string.
+            const max = olta.getAll("action")?.length + 1
+            const value = `${currentClip === max ? 0 : currentClip + 1}`
+
+            console.log("VALUE", value)
+
+
+            // Updating the value associated with the key "action" in the olta object, with the specified id and value
+            olta.update("action", {
+                id: "0",
+                value
+            })
+        })
+
+        // Remove holdProgress element and styles since we don't need them anymore
+        const styleSheet = document.createElement("style");
+        styleSheet.textContent = `
+            #loadingOverlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
+                display: none;
+                z-index: 1000;
+            }
+        `;
+
+        document.head.appendChild(styleSheet);
+
+        // Function to check if touch is on target mesh
+        function isTouchingTargetMesh(event) {
+            if (!targetMesh) return false;
+
+            // Calculate touch position in normalized device coordinates (-1 to +1)
+            const touch = event.touches[0];
+            const rect = renderer.domElement.getBoundingClientRect();
+            touchPoint.x = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
+            touchPoint.y = -((touch.clientY - rect.top) / rect.height) * 2 + 1;
+
+            // Update the picking ray with the camera and touch position
+            raycaster.setFromCamera(touchPoint, camera);
+
+            // Calculate objects intersecting the picking ray
+            const intersects = raycaster.intersectObject(targetMesh, false);
+
+            return intersects.length > 0;
+        }
+
+        // Update touch event handler
+        window.addEventListener('touchstart', (event) => {
+            // Prevent default behavior like scrolling or zooming
+            event.preventDefault();
+
+            // Only respond to single finger touch and only if touching the target mesh
+            if (event.touches.length === 1 && isTouchingTargetMesh(event)) {
+                console.log("👆 touch detected on target mesh!");
+                loadingOverlay.style.display = 'block';
+
+                const max = olta.getAll("action")?.length + 1;
+                const value = `${currentClip === max ? 0 : currentClip + 1}`
+                console.log("VALUE", value)
+
+                olta.update("action", {
+                    id: "0",
+                    value
+                });
+            }
+        }, { passive: false });
+
+        // Remove touchend and touchcancel event listeners since we don't need them anymore
+
+        // Animation button handler
+        document.getElementById('animationButton').addEventListener('click', () => {
+            console.log("🔄 Animation button clicked!");
+            loadingOverlay.style.display = 'block';
+
+            const max = olta.getAll("action")?.length + 1;
+            const value = `${currentClip === max ? 0 : currentClip + 1}`
+            console.log("VALUE", value)
+
+            olta.update("action", {
+                id: "0",
+                value
+            });
+        });
+
+        init();
+
+        function init() {
+            const container = document.getElementById('container');
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 100);
+            camera.position.set(0, 4, -8);
+            clock = new THREE.Clock();
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color('white');
+            scene.fog = new THREE.Fog(0xffffff, 0.1, 11);
+
+            // Lights
+            var hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 1.5);
+            hemiLight.color.setHSL(0.6, 1, 0.1);
+            hemiLight.groundColor.setHSL(0.1, .1, 0.6);
+            hemiLight.position.set(10, 30, 10);
+            hemiLight.rotation.set(0, -30, 0);
+            scene.add(hemiLight);
+
+            var dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+            dirLight.color.setHSL(0.1, .5, 1);
+            dirLight.position.set(-5, 6, .01);
+            dirLight.position.multiplyScalar(12);
+            scene.add(dirLight);
+            dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 512;
+            dirLight.shadow.mapSize.height = 512;
+            dirLight.intensity = 1;
+            var d = 20;
+            dirLight.shadow.camera.left = -d;
+            dirLight.shadow.camera.right = d;
+            dirLight.shadow.camera.top = d;
+            dirLight.shadow.camera.bottom = -d;
+            dirLight.shadow.camera.far = 150;
+            dirLight.shadow.bias = -0.00001;
+
+            var mesh = new THREE.Mesh(new THREE.CircleGeometry(40, 40), new THREE.MeshPhongMaterial({
+                color: 0xffffff,
+            }));
+            mesh.rotation.x = - Math.PI / 2;
+            mesh.position.y = -3.05;
+            mesh.receiveShadow = true;
+            scene.add(mesh);
+
+            var loader = new GLTFLoader();
+            loader.load('./gltf/Angled_Planes_V37.gltf', function (gltf) {
+                var model = gltf.scene;
+                model.traverse(function (object) {
+                    if (object.isMesh) {
+                        // Log mesh names to console to help identify the target
+                        console.log('Found mesh:', object.name);
+
+                        // Replace 'YourTargetMeshName' with the actual mesh name you want to make clickable
+                        if (object.name === 'YourTargetMeshName') {
+                            targetMesh = object;
+                            // Store original material
+                            originalMaterial = object.material.clone();
+                            console.log('Found target mesh for color change:', object.name);
+                        }
+
+                        var material = object.material;
+                        material.DoubleSide = true;
+                        material.specular = 0.5;
+                        material.castShadow = true;
+                        material.receiveShadow = true;
+                    }
+                });
+
+                model.position.set(0, -2, 0);
+                model.rotation.set(0, 2.5, 0);
+                model.scale.set(0.3, 0.3, 0.3);
+                scene.add(model);
+
+                mixer = new THREE.AnimationMixer(model);
+                actions = gltf.animations.map((animation) => mixer.clipAction(animation));
+
+                updateHandler();
+                animate();
+            });
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.outputEncoding = THREE.sRGBEncoding;
+            container.appendChild(renderer.domElement);
+
+            // Event Listeners	
+            window.addEventListener('resize', onWindowResize, false);
+
+            // Orbit controls
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.minPolarAngle = Math.PI * 0.15;
+            controls.maxPolarAngle = Math.PI * 0.35;
+            controls.minDistance = 8;
+            controls.maxDistance = 12;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            var mixerUpdateDelta = clock.getDelta();
+            mixer.update(mixerUpdateDelta);
+            renderer.render(scene, camera);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // Add click handler for desktop
+        window.addEventListener('click', (event) => {
+            event.preventDefault();
+
+            // Calculate mouse position in normalized device coordinates
+            const mouse = new THREE.Vector2();
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            // Update the picking ray with the camera and mouse position
+            raycaster.setFromCamera(mouse, camera);
+
+            if (targetMesh) {
+                const intersects = raycaster.intersectObject(targetMesh);
+                if (intersects.length > 0) {
+                    console.log('🎨 Changing color of target mesh');
+
+                    // Create new material based on the original
+                    const newMaterial = originalMaterial.clone();
+                    newMaterial.color = newColors[currentColorIndex];
+
+                    // Update the mesh material
+                    targetMesh.material = newMaterial;
+
+                    // Increment color index
+                    currentColorIndex = (currentColorIndex + 1) % newColors.length;
+                }
+            }
+        });
+
+        // Update touch handler to include color change
+        window.addEventListener('touchstart', (event) => {
+            event.preventDefault();
+
+            if (event.touches.length === 1) {
+                // Calculate touch position
+                const touch = event.touches[0];
+                touchPoint.x = (touch.clientX / window.innerWidth) * 2 - 1;
+                touchPoint.y = -(touch.clientY / window.innerHeight) * 2 + 1;
+
+                // Update the picking ray with the camera and touch position
+                raycaster.setFromCamera(touchPoint, camera);
+
+                if (targetMesh) {
+                    const intersects = raycaster.intersectObject(targetMesh);
+                    if (intersects.length > 0) {
+                        console.log('🎨 Changing color of target mesh');
+
+                        // Create new material based on the original
+                        const newMaterial = originalMaterial.clone();
+                        newMaterial.color = newColors[currentColorIndex];
+
+                        // Update the mesh material
+                        targetMesh.material = newMaterial;
+
+                        // Increment color index
+                        currentColorIndex = (currentColorIndex + 1) % newColors.length;
+                    }
+                }
+            }
+        }, { passive: false });
+    </script>
+</body>
+
+</html>
