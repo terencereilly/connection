@@ -69,36 +69,6 @@
             left: 50%;
             transform: translate(-50%, -50%);
         }
-
-        #holdProgress {
-            position: fixed;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-top-color: #fff;
-            display: none;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 1001;
-        }
-
-        @keyframes holdProgress {
-            0% {
-                transform: translate(-50%, -50%) rotate(0deg);
-            }
-
-            100% {
-                transform: translate(-50%, -50%) rotate(360deg);
-            }
-        }
-
-        .holding {
-            display: block !important;
-            animation: holdProgress 3s linear infinite;
-        }
     </style>
 </head>
 
@@ -109,8 +79,6 @@
         <div id="loadingSpinner"></div>
         <div id="loadingText">Updating Animation...</div>
     </div>
-
-    <div id="holdProgress"></div>
 
     <script type="importmap">
         {
@@ -130,6 +98,9 @@
         var model, mixer, clock, actions;
         var currentClip = 0;
         const olta = Olta();
+        const raycaster = new THREE.Raycaster();
+        const touchPoint = new THREE.Vector2();
+        let targetMesh = null; // Will store the specific mesh we want to interact with
 
         const loadingOverlay = document.getElementById('loadingOverlay');
 
@@ -184,62 +155,64 @@
             })
         })
 
-        // Add progress indicator element
-        const holdProgress = document.createElement('div');
-        holdProgress.id = 'holdProgress';
-        document.body.appendChild(holdProgress);
+        // Remove holdProgress element and styles since we don't need them anymore
+        const styleSheet = document.createElement("style");
+        styleSheet.textContent = `
+            #loadingOverlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
+                display: none;
+                z-index: 1000;
+            }
+        `;
 
-        // Touch Event variables for mobile
-        let touchTimer = null;
-        let progressTimer = null;
-        const HOLD_DURATION = 3000; // 3 seconds hold time
+        document.head.appendChild(styleSheet);
 
-        // Touch start event
+        // Function to check if touch is on target mesh
+        function isTouchingTargetMesh(event) {
+            if (!targetMesh) return false;
+
+            // Calculate touch position in normalized device coordinates (-1 to +1)
+            const touch = event.touches[0];
+            const rect = renderer.domElement.getBoundingClientRect();
+            touchPoint.x = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
+            touchPoint.y = -((touch.clientY - rect.top) / rect.height) * 2 + 1;
+
+            // Update the picking ray with the camera and touch position
+            raycaster.setFromCamera(touchPoint, camera);
+
+            // Calculate objects intersecting the picking ray
+            const intersects = raycaster.intersectObject(targetMesh, false);
+
+            return intersects.length > 0;
+        }
+
+        // Update touch event handler
         window.addEventListener('touchstart', (event) => {
             // Prevent default behavior like scrolling or zooming
             event.preventDefault();
 
-            // Only respond to single finger touch
-            if (event.touches.length === 1) {
-                holdProgress.classList.add('holding');
+            // Only respond to single finger touch and only if touching the target mesh
+            if (event.touches.length === 1 && isTouchingTargetMesh(event)) {
+                console.log("👆 touch detected on target mesh!");
+                loadingOverlay.style.display = 'block';
 
-                touchTimer = setTimeout(() => {
-                    console.log("👆 3-second hold detected!");
-                    holdProgress.classList.remove('holding');
-                    holdProgress.style.display = 'none';
-                    loadingOverlay.style.display = 'block';
+                const max = olta.getAll("action")?.length + 1;
+                const value = `${currentClip === max ? 0 : currentClip + 1}`
+                console.log("VALUE", value)
 
-                    const max = olta.getAll("action")?.length + 1;
-                    const value = `${currentClip === max ? 0 : currentClip + 1}`
-                    console.log("VALUE", value)
-
-                    olta.update("action", {
-                        id: "0",
-                        value
-                    });
-                }, HOLD_DURATION);
+                olta.update("action", {
+                    id: "0",
+                    value
+                });
             }
         }, { passive: false });
 
-        // Touch end event
-        window.addEventListener('touchend', () => {
-            if (touchTimer) {
-                clearTimeout(touchTimer);
-                touchTimer = null;
-            }
-            holdProgress.classList.remove('holding');
-            holdProgress.style.display = 'none';
-        });
-
-        // Touch cancel event
-        window.addEventListener('touchcancel', () => {
-            if (touchTimer) {
-                clearTimeout(touchTimer);
-                touchTimer = null;
-            }
-            holdProgress.classList.remove('holding');
-            holdProgress.style.display = 'none';
-        });
+        // Remove touchend and touchcancel event listeners since we don't need them anymore
 
         init();
 
@@ -290,14 +263,18 @@
                 var model = gltf.scene;
                 model.traverse(function (object) {
                     if (object.isMesh) {
-                        var material = object.material;
+                        // Store reference to the specific mesh we want to interact with
+                        // Replace 'YourMeshName' with the actual name of the mesh from your GLTF
+                        if (object.name === 'YourMeshName') {
+                            targetMesh = object;
+                            console.log('Found target mesh:', object.name);
+                        }
 
+                        var material = object.material;
                         material.DoubleSide = true;
                         material.specular = 0.5;
-
-                        material.castShadow = true; // Enable shadow casting for the object
-                        material.receiveShadow = true; // Enable s
-
+                        material.castShadow = true;
+                        material.receiveShadow = true;
                     }
                 });
 
