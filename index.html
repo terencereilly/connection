@@ -153,28 +153,48 @@
         })
 
 
-        // Touch Event for mobile
+        // Touch Event variables for mobile
+        let touchTimer = null;
+        const HOLD_DURATION = 500; // Time in milliseconds to hold before triggering
+
+        // Touch start event
         window.addEventListener('touchstart', (event) => {
             // Prevent default behavior like scrolling or zooming
             event.preventDefault();
 
             // Only respond to single finger touch
             if (event.touches.length === 1) {
-                console.log("👆 touch detected!");
-                loadingOverlay.style.display = 'block';
+                touchTimer = setTimeout(() => {
+                    console.log("👆 touch hold detected!");
+                    loadingOverlay.style.display = 'block';
 
-                const max = olta.getAll("action")?.length + 1;
-                const value = `${currentClip === max ? 0 : currentClip + 1}`
-                console.log("VALUE", value)
+                    const max = olta.getAll("action")?.length + 1;
+                    const value = `${currentClip === max ? 0 : currentClip + 1}`
+                    console.log("VALUE", value)
 
-                olta.update("action", {
-                    id: "0",
-                    value
-                });
+                    olta.update("action", {
+                        id: "0",
+                        value
+                    });
+                }, HOLD_DURATION);
             }
-        }, { passive: false }); // Add passive: false to allow preventDefault()
+        }, { passive: false });
 
+        // Touch end event
+        window.addEventListener('touchend', () => {
+            if (touchTimer) {
+                clearTimeout(touchTimer);
+                touchTimer = null;
+            }
+        });
 
+        // Touch cancel event
+        window.addEventListener('touchcancel', () => {
+            if (touchTimer) {
+                clearTimeout(touchTimer);
+                touchTimer = null;
+            }
+        });
 
         init();
 
