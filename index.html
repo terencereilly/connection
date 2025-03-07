@@ -69,6 +69,36 @@
             left: 50%;
             transform: translate(-50%, -50%);
         }
+
+        #holdProgress {
+            position: fixed;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1001;
+        }
+
+        @keyframes holdProgress {
+            0% {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+
+            100% {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
+        }
+
+        .holding {
+            display: block !important;
+            animation: holdProgress 3s linear infinite;
+        }
     </style>
 </head>
 
@@ -79,6 +109,8 @@
         <div id="loadingSpinner"></div>
         <div id="loadingText">Updating Animation...</div>
     </div>
+
+    <div id="holdProgress"></div>
 
     <script type="importmap">
         {
@@ -152,10 +184,15 @@
             })
         })
 
+        // Add progress indicator element
+        const holdProgress = document.createElement('div');
+        holdProgress.id = 'holdProgress';
+        document.body.appendChild(holdProgress);
 
         // Touch Event variables for mobile
         let touchTimer = null;
-        const HOLD_DURATION = 500; // Time in milliseconds to hold before triggering
+        let progressTimer = null;
+        const HOLD_DURATION = 3000; // 3 seconds hold time
 
         // Touch start event
         window.addEventListener('touchstart', (event) => {
@@ -164,8 +201,12 @@
 
             // Only respond to single finger touch
             if (event.touches.length === 1) {
+                holdProgress.classList.add('holding');
+
                 touchTimer = setTimeout(() => {
-                    console.log("👆 touch hold detected!");
+                    console.log("👆 3-second hold detected!");
+                    holdProgress.classList.remove('holding');
+                    holdProgress.style.display = 'none';
                     loadingOverlay.style.display = 'block';
 
                     const max = olta.getAll("action")?.length + 1;
@@ -186,6 +227,8 @@
                 clearTimeout(touchTimer);
                 touchTimer = null;
             }
+            holdProgress.classList.remove('holding');
+            holdProgress.style.display = 'none';
         });
 
         // Touch cancel event
@@ -194,6 +237,8 @@
                 clearTimeout(touchTimer);
                 touchTimer = null;
             }
+            holdProgress.classList.remove('holding');
+            holdProgress.style.display = 'none';
         });
 
         init();
