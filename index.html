@@ -138,7 +138,15 @@
         const olta = Olta();
         const raycaster = new THREE.Raycaster();
         const touchPoint = new THREE.Vector2();
-        let targetMesh = null; // Will store the specific mesh we want to interact with
+        let targetMesh = null;
+        let originalMaterial = null; // Store original material
+        const newColors = [
+            new THREE.Color(0xff0000), // red
+            new THREE.Color(0x00ff00), // green
+            new THREE.Color(0x0000ff), // blue
+            new THREE.Color(0xffff00), // yellow
+        ];
+        let currentColorIndex = 0;
 
         const loadingOverlay = document.getElementById('loadingOverlay');
 
@@ -316,11 +324,15 @@
                 var model = gltf.scene;
                 model.traverse(function (object) {
                     if (object.isMesh) {
-                        // Store reference to the specific mesh we want to interact with
-                        // Replace 'YourMeshName' with the actual name of the mesh from your GLTF
-                        if (object.name === 'YourMeshName') {
+                        // Log mesh names to console to help identify the target
+                        console.log('Found mesh:', object.name);
+
+                        // Replace 'YourTargetMeshName' with the actual mesh name you want to make clickable
+                        if (object.name === 'AngledPlane_Master_GeoShape_MASH1_Instancer_0PIV') {
                             targetMesh = object;
-                            console.log('Found target mesh:', object.name);
+                            // Store original material
+                            originalMaterial = object.material.clone();
+                            console.log('Found target mesh for color change:', object.name);
                         }
 
                         var material = object.material;
@@ -373,6 +385,68 @@
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         }
+
+        // Add click handler for desktop
+        window.addEventListener('click', (event) => {
+            event.preventDefault();
+
+            // Calculate mouse position in normalized device coordinates
+            const mouse = new THREE.Vector2();
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            // Update the picking ray with the camera and mouse position
+            raycaster.setFromCamera(mouse, camera);
+
+            if (targetMesh) {
+                const intersects = raycaster.intersectObject(targetMesh);
+                if (intersects.length > 0) {
+                    console.log('🎨 Changing color of target mesh');
+
+                    // Create new material based on the original
+                    const newMaterial = originalMaterial.clone();
+                    newMaterial.color = newColors[currentColorIndex];
+
+                    // Update the mesh material
+                    targetMesh.material = newMaterial;
+
+                    // Increment color index
+                    currentColorIndex = (currentColorIndex + 1) % newColors.length;
+                }
+            }
+        });
+
+        // Update touch handler to include color change
+        window.addEventListener('touchstart', (event) => {
+            event.preventDefault();
+
+            if (event.touches.length === 1) {
+                // Calculate touch position
+                const touch = event.touches[0];
+                touchPoint.x = (touch.clientX / window.innerWidth) * 2 - 1;
+                touchPoint.y = -(touch.clientY / window.innerHeight) * 2 + 1;
+
+                // Update the picking ray with the camera and touch position
+                raycaster.setFromCamera(touchPoint, camera);
+
+                if (targetMesh) {
+                    const intersects = raycaster.intersectObject(targetMesh);
+                    if (intersects.length > 0) {
+                        console.log('🎨 Changing color of target mesh');
+
+                        // Create new material based on the original
+                        const newMaterial = originalMaterial.clone();
+                        newMaterial.color = newColors[currentColorIndex];
+
+                        // Update the mesh material
+                        targetMesh.material = newMaterial;
+
+                        // Increment color index
+                        currentColorIndex = (currentColorIndex + 1) % newColors.length;
+                    }
+                }
+            }
+        }, { passive: false });
     </script>
 </body>
 
