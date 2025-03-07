@@ -138,15 +138,14 @@
         const olta = Olta();
         const raycaster = new THREE.Raycaster();
         const touchPoint = new THREE.Vector2();
-        let targetMesh = null;
-        let originalMaterial = null; // Store original material
+        const meshMaterials = new Map(); // Store original materials for each mesh
         const newColors = [
             new THREE.Color(0xff0000), // red
             new THREE.Color(0x00ff00), // green
             new THREE.Color(0x0000ff), // blue
             new THREE.Color(0xffff00), // yellow
         ];
-        let currentColorIndex = 0;
+        const meshColorIndices = new Map(); // Track color index for each mesh
 
         const loadingOverlay = document.getElementById('loadingOverlay');
 
@@ -324,16 +323,9 @@
                 var model = gltf.scene;
                 model.traverse(function (object) {
                     if (object.isMesh) {
-                        // Log mesh names to console to help identify the target
-                        console.log('Found mesh:', object.name);
-
-                        // Replace 'YourTargetMeshName' with the actual mesh name you want to make clickable
-                        if (object.name === 'AngledPlane_Master_GeoShape_MASH1_Instancer_0PIV') {
-                            targetMesh = object;
-                            // Store original material
-                            originalMaterial = object.material.clone();
-                            console.log('Found target mesh for color change:', object.name);
-                        }
+                        // Store original material for each mesh
+                        meshMaterials.set(object.uuid, object.material.clone());
+                        meshColorIndices.set(object.uuid, 0);
 
                         var material = object.material;
                         material.DoubleSide = true;
@@ -386,7 +378,7 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         }
 
-        // Add click handler for desktop
+        // Replace the click handler
         window.addEventListener('click', (event) => {
             event.preventDefault();
 
@@ -398,25 +390,33 @@
             // Update the picking ray with the camera and mouse position
             raycaster.setFromCamera(mouse, camera);
 
-            if (targetMesh) {
-                const intersects = raycaster.intersectObject(targetMesh);
-                if (intersects.length > 0) {
-                    console.log('🎨 Changing color of target mesh');
+            // Test intersection with all meshes in the scene
+            const intersects = raycaster.intersectObjects(scene.children, true);
+
+            if (intersects.length > 0) {
+                const mesh = intersects[0].object;
+                if (mesh.isMesh) {
+                    console.log('🎨 Changing color of mesh:', mesh.name);
+
+                    // Get or initialize color index for this mesh
+                    let colorIndex = meshColorIndices.get(mesh.uuid) || 0;
 
                     // Create new material based on the original
+                    const originalMaterial = meshMaterials.get(mesh.uuid);
                     const newMaterial = originalMaterial.clone();
-                    newMaterial.color = newColors[currentColorIndex];
+                    newMaterial.color = newColors[colorIndex];
 
                     // Update the mesh material
-                    targetMesh.material = newMaterial;
+                    mesh.material = newMaterial;
 
-                    // Increment color index
-                    currentColorIndex = (currentColorIndex + 1) % newColors.length;
+                    // Increment color index for this mesh
+                    colorIndex = (colorIndex + 1) % newColors.length;
+                    meshColorIndices.set(mesh.uuid, colorIndex);
                 }
             }
         });
 
-        // Update touch handler to include color change
+        // Replace the touch handler
         window.addEventListener('touchstart', (event) => {
             event.preventDefault();
 
@@ -429,20 +429,28 @@
                 // Update the picking ray with the camera and touch position
                 raycaster.setFromCamera(touchPoint, camera);
 
-                if (targetMesh) {
-                    const intersects = raycaster.intersectObject(targetMesh);
-                    if (intersects.length > 0) {
-                        console.log('🎨 Changing color of target mesh');
+                // Test intersection with all meshes in the scene
+                const intersects = raycaster.intersectObjects(scene.children, true);
+
+                if (intersects.length > 0) {
+                    const mesh = intersects[0].object;
+                    if (mesh.isMesh) {
+                        console.log('🎨 Changing color of mesh:', mesh.name);
+
+                        // Get or initialize color index for this mesh
+                        let colorIndex = meshColorIndices.get(mesh.uuid) || 0;
 
                         // Create new material based on the original
+                        const originalMaterial = meshMaterials.get(mesh.uuid);
                         const newMaterial = originalMaterial.clone();
-                        newMaterial.color = newColors[currentColorIndex];
+                        newMaterial.color = newColors[colorIndex];
 
                         // Update the mesh material
-                        targetMesh.material = newMaterial;
+                        mesh.material = newMaterial;
 
-                        // Increment color index
-                        currentColorIndex = (currentColorIndex + 1) % newColors.length;
+                        // Increment color index for this mesh
+                        colorIndex = (colorIndex + 1) % newColors.length;
+                        meshColorIndices.set(mesh.uuid, colorIndex);
                     }
                 }
             }
