@@ -105,7 +105,7 @@
             if (!actions) return;
 
             const values = olta.getAll("action")?.map(action => action.value)
-            console.log("values", values )
+            console.log("values", values)
 
             if (!values) return;
             actions.forEach(action => {
@@ -117,7 +117,7 @@
 
             setTimeout(() => {
                 loadingOverlay.style.display = 'none';
-            }, 1000); 
+            }, 1000);
         }
 
         olta.onUpdate(updateHandler);
@@ -129,10 +129,23 @@
             console.log("🖱 right click detected!")
             loadingOverlay.style.display = 'block';
 
+            // 'getAll' is a method on the 'olta' object, passing it an argument 'action'
+            // retriving all elements associated with the key action.
+            // The '?.' allows you to access properties of an object deeply nested 
+            // within a structure without worrying if any intermediate property is null or undefined. 
+            // Here it's accessing the length property of the array returned by olta.getAll("action")
+            // The '+ 1' adds 1 to the length of the array obtained from olta.getAll("action")
+
+            // ${}: This is a template literal, indicated by the backticks (). 
+            // It allows you to embed expressions inside a string by wrapping them in ${}`. 
+            // In this case, it's used to convert the result of the ternary operator into a string.
             const max = olta.getAll("action")?.length + 1
             const value = `${currentClip === max ? 0 : currentClip + 1}`
+
             console.log("VALUE", value)
 
+
+            // Updating the value associated with the key "action" in the olta object, with the specified id and value
             olta.update("action", {
                 id: "0",
                 value
@@ -142,20 +155,24 @@
 
         // Touch Event for mobile
         window.addEventListener('touchstart', (event) => {
+            // Prevent default behavior like scrolling or zooming
+            event.preventDefault();
 
-            console.log("👆 touch detected!");
-            loadingOverlay.style.display = 'block';
+            // Only respond to single finger touch
+            if (event.touches.length === 1) {
+                console.log("👆 touch detected!");
+                loadingOverlay.style.display = 'block';
 
-            const max = olta.getAll("action")?.length + 1;
-            const value = `${currentClip === max ? 0 : currentClip + 1}`
-            console.log("VALUE", value)
+                const max = olta.getAll("action")?.length + 1;
+                const value = `${currentClip === max ? 0 : currentClip + 1}`
+                console.log("VALUE", value)
 
-            olta.update("action",
-                {
+                olta.update("action", {
                     id: "0",
                     value
-                })
-        })
+                });
+            }
+        }, { passive: false }); // Add passive: false to allow preventDefault()
 
 
 
