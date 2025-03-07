@@ -140,10 +140,10 @@
         const touchPoint = new THREE.Vector2();
         const meshMaterials = new Map(); // Store original materials for each mesh
         const newColors = [
-            new THREE.Color(0x2F4538), // deep green
-            new THREE.Color(0x8B7355), // metallic gold
-            new THREE.Color(0x45B1E8), // metallic blue
-            new THREE.Color(0xC0C0C0), // silver
+            new THREE.Color(0xFFFFFF),  // pure white
+            new THREE.Color(0x00E5FF),  // cyan
+            new THREE.Color(0xFF4D00),  // orange
+            new THREE.Color(0x000000),  // black
         ];
         const meshColorIndices = new Map(); // Track color index for each mesh
 
@@ -282,45 +282,38 @@
             camera.position.set(0, 4, -8);
             clock = new THREE.Clock();
             scene = new THREE.Scene();
-            scene.background = new THREE.Color('white');
-            scene.fog = new THREE.Fog(0xffffff, 5, 30);
+            scene.background = new THREE.Color(0x666666); // Pure black background
+            // Add subtle fog with cyan tint
+            scene.fog = new THREE.FogExp2(0x001a1a, 0.2); // Exponential fog with very dark cyan color
 
-            // Add environment map
-            const cubeTextureLoader = new THREE.CubeTextureLoader();
-            const envMap = cubeTextureLoader.load([
-                'px.jpg', 'nx.jpg',
-                'py.jpg', 'ny.jpg',
-                'pz.jpg', 'nz.jpg'
-            ]);
-            scene.environment = envMap;
+            // Key light (main light for white highlights)
+            const keyLight = new THREE.SpotLight(0xffffff, 3);
+            keyLight.position.set(5, 10, 5);
+            keyLight.angle = Math.PI / 6;
+            keyLight.penumbra = 0.2;
+            scene.add(keyLight);
 
-            // Lights
-            var hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 2);
-            hemiLight.color.setHSL(0.6, 1, 0.1);
-            hemiLight.groundColor.setHSL(0.1, .1, 0.6);
-            hemiLight.position.set(10, 30, 10);
-            hemiLight.rotation.set(0, -30, 0);
-            scene.add(hemiLight);
+            // Cyan rim light
+            const rimLight1 = new THREE.SpotLight(0x00E5FF, 2);
+            rimLight1.position.set(-8, 5, -5);
+            rimLight1.angle = Math.PI / 4;
+            rimLight1.penumbra = 0.5;
+            scene.add(rimLight1);
 
-            var dirLight = new THREE.DirectionalLight(0xffffff, 2);
-            dirLight.color.setHSL(0.1, 0.7, 1);
-            dirLight.position.set(-5, 6, .01);
-            dirLight.position.multiplyScalar(12);
-            scene.add(dirLight);
-            dirLight.castShadow = true;
-            dirLight.shadow.mapSize.width = 512;
-            dirLight.shadow.mapSize.height = 512;
-            dirLight.intensity = 1;
-            var d = 20;
-            dirLight.shadow.camera.left = -d;
-            dirLight.shadow.camera.right = d;
-            dirLight.shadow.camera.top = d;
-            dirLight.shadow.camera.bottom = -d;
-            dirLight.shadow.camera.far = 150;
-            dirLight.shadow.bias = -0.00001;
+            // Orange fill light
+            const rimLight2 = new THREE.SpotLight(0xFF4D00, 1.5);
+            rimLight2.position.set(8, -2, -5);
+            rimLight2.angle = Math.PI / 4;
+            rimLight2.penumbra = 0.7;
+            scene.add(rimLight2);
 
+            // Very subtle ambient light
+            const ambientLight = new THREE.AmbientLight(0x111111, 1);
+            scene.add(ambientLight);
+
+            // Ground plane with slightly darker color to contrast with model
             var mesh = new THREE.Mesh(new THREE.CircleGeometry(40, 40), new THREE.MeshPhongMaterial({
-                color: 0xffffff,
+                color: 0x777777,
             }));
             mesh.rotation.x = - Math.PI / 2;
             mesh.position.y = -3.05;
@@ -332,28 +325,32 @@
                 var model = gltf.scene;
                 model.traverse(function (object) {
                     if (object.isMesh) {
-                        // Create new metallic material
-                        const metalMaterial = new THREE.MeshPhysicalMaterial({
+                        // Create new material inspired by the reference image
+                        const contrastMaterial = new THREE.MeshPhysicalMaterial({
                             color: 0xffffff,
-                            metalness: 0.9,
+                            metalness: 0.7,
                             roughness: 0.2,
+                            transmission: 0.0,
+                            reflectivity: 1.0,
                             side: THREE.DoubleSide,
-                            envMapIntensity: 1,
-                            clearcoat: 1.0,
-                            clearcoatRoughness: 0.1,
+                            clearcoat: 0.3,
+                            clearcoatRoughness: 0.2,
+                            envMapIntensity: 0.8,
+                            flatShading: true,
                         });
 
-                        // Store original material properties
-                        meshMaterials.set(object.uuid, metalMaterial.clone());
+                        // Store material properties
+                        meshMaterials.set(object.uuid, contrastMaterial.clone());
                         meshColorIndices.set(object.uuid, 0);
 
                         // Apply material to mesh
-                        object.material = metalMaterial;
+                        object.material = contrastMaterial;
                         object.material.castShadow = true;
                         object.material.receiveShadow = true;
                     }
                 });
 
+                // Adjust model position for better lighting angles
                 model.position.set(0, -2, 0);
                 model.rotation.set(0, 2.5, 0);
                 model.scale.set(0.3, 0.3, 0.3);
@@ -367,10 +364,17 @@
             });
 
             // Renderer
-            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer = new THREE.WebGLRenderer({
+                antialias: true,
+                powerPreference: "high-performance"
+            });
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.outputEncoding = THREE.sRGBEncoding;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.2;
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             container.appendChild(renderer.domElement);
 
             // Event Listeners	
