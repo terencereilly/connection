@@ -324,14 +324,16 @@
                 model.traverse(function (object) {
                     if (object.isMesh) {
                         // Store original material for each mesh
-                        meshMaterials.set(object.uuid, object.material.clone());
+                        const originalMaterial = object.material.clone();
+                        originalMaterial.side = THREE.DoubleSide; // Correct way to set double-sided
+                        meshMaterials.set(object.uuid, originalMaterial);
                         meshColorIndices.set(object.uuid, 0);
 
-                        var material = object.material;
-                        material.DoubleSide = true;
-                        material.specular = 0.5;
-                        material.castShadow = true;
-                        material.receiveShadow = true;
+                        // Update current material
+                        object.material.side = THREE.DoubleSide;
+                        object.material.specular = 0.5;
+                        object.material.castShadow = true;
+                        object.material.receiveShadow = true;
                     }
                 });
 
