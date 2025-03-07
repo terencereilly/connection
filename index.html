@@ -69,6 +69,37 @@
             left: 50%;
             transform: translate(-50%, -50%);
         }
+
+        #animationButton {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: none;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            display: none;
+            /* Hidden by default, shown only on mobile */
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #animationButton svg {
+            width: 30px;
+            height: 30px;
+            fill: #333;
+        }
+
+        @media (max-width: 768px) {
+            #animationButton {
+                display: flex;
+            }
+        }
     </style>
 </head>
 
@@ -79,6 +110,13 @@
         <div id="loadingSpinner"></div>
         <div id="loadingText">Updating Animation...</div>
     </div>
+
+    <button id="animationButton" aria-label="Change Animation">
+        <svg viewBox="0 0 24 24">
+            <path
+                d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" />
+        </svg>
+    </button>
 
     <script type="importmap">
         {
@@ -213,6 +251,21 @@
         }, { passive: false });
 
         // Remove touchend and touchcancel event listeners since we don't need them anymore
+
+        // Animation button handler
+        document.getElementById('animationButton').addEventListener('click', () => {
+            console.log("🔄 Animation button clicked!");
+            loadingOverlay.style.display = 'block';
+
+            const max = olta.getAll("action")?.length + 1;
+            const value = `${currentClip === max ? 0 : currentClip + 1}`
+            console.log("VALUE", value)
+
+            olta.update("action", {
+                id: "0",
+                value
+            });
+        });
 
         init();
 
