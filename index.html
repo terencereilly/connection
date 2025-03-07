@@ -282,9 +282,9 @@
             camera.position.set(0, 4, -8);
             clock = new THREE.Clock();
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x666666); // Pure black background
-            // Add subtle fog with cyan tint
-            scene.fog = new THREE.FogExp2(0x001a1a, 0.2); // Exponential fog with very dark cyan color
+            scene.background = new THREE.Color(0x777777); // Match ground color
+            // Increase fog density and match color
+            scene.fog = new THREE.FogExp2(0x222222, 0.2); // Increased density from 0.2 to 0.35
 
             // Key light (main light for white highlights)
             const keyLight = new THREE.SpotLight(0xffffff, 3);
@@ -300,20 +300,20 @@
             rimLight1.penumbra = 0.5;
             scene.add(rimLight1);
 
-            // Orange fill light
-            const rimLight2 = new THREE.SpotLight(0xFF4D00, 1.5);
-            rimLight2.position.set(8, -2, -5);
-            rimLight2.angle = Math.PI / 4;
-            rimLight2.penumbra = 0.7;
-            scene.add(rimLight2);
+            // Remove orange fill light and replace with subtle white fill
+            const fillLight = new THREE.SpotLight(0xffffff, 0.5);
+            fillLight.position.set(8, -2, -5);
+            fillLight.angle = Math.PI / 4;
+            fillLight.penumbra = 0.7;
+            scene.add(fillLight);
 
             // Very subtle ambient light
             const ambientLight = new THREE.AmbientLight(0x111111, 1);
             scene.add(ambientLight);
 
-            // Ground plane with slightly darker color to contrast with model
-            var mesh = new THREE.Mesh(new THREE.CircleGeometry(40, 40), new THREE.MeshPhongMaterial({
-                color: 0x777777,
+            // Ground plane with matching color
+            var mesh = new THREE.Mesh(new THREE.CircleGeometry(100, 100), new THREE.MeshPhongMaterial({
+                color: 0x777777, // Keep ground color consistent
             }));
             mesh.rotation.x = - Math.PI / 2;
             mesh.position.y = -3.05;
@@ -327,16 +327,16 @@
                     if (object.isMesh) {
                         // Create new material inspired by the reference image
                         const contrastMaterial = new THREE.MeshPhysicalMaterial({
-                            color: 0xffffff,
-                            metalness: 0.7,
-                            roughness: 0.2,
-                            transmission: 0.0,
+                            //  color: 0xffffff,
+                            metalness: 0.5,
+                            roughness: 0.6,
+                            transmission: 0.5,
                             reflectivity: 1.0,
                             side: THREE.DoubleSide,
-                            clearcoat: 0.3,
-                            clearcoatRoughness: 0.2,
-                            envMapIntensity: 0.8,
-                            flatShading: true,
+                            clearcoat: 0.6,
+                            clearcoatRoughness: 0.4,
+                            envMapIntensity: 0.8
+                            //   flatShading: true,
                         });
 
                         // Store material properties
